@@ -1,0 +1,15 @@
+[submodule "third-party/yahoo-finance"]
+	path = third-party/yahoo-finance
+	url = https://github.com/foxadb/yahoo-finance.git
+[submodule "third-party/googletest"]
+	path = third-party/googletest
+	url = https://github.com/google/googletest.git
+[submodule "third-party/curl"]
+	path = third-party/curl
+	url = https://github.com/curl/curl.git
+[submodule "third-party/quote"]
+	path = third-party/quote
+	url = https://github.com/aphenriques/quote.git
+[submodule "third-party/rapidjson"]
+	path = third-party/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
