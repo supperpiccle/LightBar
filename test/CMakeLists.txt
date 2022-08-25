@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.8)
 set(CMAKE_CXX_STANDARD 11)
 
 set (SOURCES StockTests.cpp)
-add_executable(StockTests StockTests.cpp)
+
 add_executable(LedMatrixTests LedMatrixTest.cpp)
 target_include_directories(LedMatrixTests PRIVATE ../third-party/rapidjson/include)
 
@@ -13,11 +13,10 @@ set_target_properties (
     CXX_STANDARD 17
     )
 
+add_executable(StockTests StockTests.cpp)
 target_link_libraries(StockTests PUBLIC gtest_main gtest)
-target_link_libraries(StockTests PUBLIC yahoo-finance)
-target_include_directories(StockTests PUBLIC ../third-party/yahoo-finance/src)
-
+target_link_libraries(StockTests PUBLIC StockUtils_lib)
+target_link_libraries(StockTests PUBLIC rapidjson)
 target_link_libraries(LedMatrixTests PUBLIC LightBar_lib)
 
-INSTALL(TARGETS StockTests DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
-
+add_subdirectory(LightBarTests)

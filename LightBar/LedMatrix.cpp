@@ -139,7 +139,7 @@ std::vector<std::string> LedMatrixView::GetFontFiles()
 	return fonts;
 }
 
-LedMatrixView& LedMatrixView::CreateSubMatrix(Area area)
+ILedMatrixView& LedMatrixView::CreateSubMatrix(Area area)
 {
 	std::lock_guard<std::mutex> lock(m_RedrawMutex);
 

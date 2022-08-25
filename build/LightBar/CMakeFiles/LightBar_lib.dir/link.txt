@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libLightBar_lib.a  CMakeFiles/LightBar_lib.dir/LightBar.cpp.o CMakeFiles/LightBar_lib.dir/LedMatrix.cpp.o
+/usr/bin/ranlib ../lib/libLightBar_lib.a

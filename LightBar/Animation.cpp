@@ -1,56 +1,90 @@
 #include "Animation.h"
+#include <sstream>
+#include <iomanip>
 
 StockAnimation::StockAnimation(std::string Ticker)
 	: m_Ticker(Ticker)
 {
-	Quote q(Ticker);
-	//m_CurrentQuote = q.getStockQuote();
+	m_Stock = CreateStock(m_Ticker);
 }
 
-void StockAnimation::Draw(LedMatrixView* View)
+void StockAnimation::Draw(ILedMatrixView& View)
 {
 
-	auto height = View->GetHeight();
-	auto width = View->GetWidth();
 	// Assuming display is 64x64
 
 	//Top left 32x32 for ticker
 	//bottom 32x64 price + arrow
 	//Top right 32x32 logo
 
-	//Area tickerArea;
-	//tickerArea.x0 = 0;
-	//tickerArea.y0 = 0;
-	//tickerArea.x1 = 32;
-	//tickerArea.y1 = 32;
-	//View->CreateSubMatrix(tickerArea)->Write(m_Ticker);
+	auto height = View.GetHeight();
+	auto width = View.GetWidth();
 
-	//Area logoArea = tickerArea;
-	//logoArea.x = 32;
-	//View->CreateSubMatrix(tickerArea)->ShowPicture(m_CurrentQuote.GetLogoPathForTicker(m_Ticker));
+	/*
+	-----------------
+	Ticker   |   Logo
+	-----------------
+	Price|<Arrow>
+	-----------------
+	*/
 
-	//Area bottomArea;
-	//bottomArea.x = 0;
-	//bottomArea.y = 32;
-	//bottomArea.length = 32;
-	//bottomArea.width = 64;
-	//auto bottomSubMatrix = View->CreateSubMatrix(tickerArea);
+	Area tickerArea;
+	tickerArea.x0 = 0;
+	tickerArea.y0 = 0;
+	tickerArea.x1 = width / 2;
+	tickerArea.y1 = height / 2;
+	View.CreateSubMatrix(tickerArea).Write(m_Ticker);
 
-	//std::string stockPriceStr;
-	//auto bottomTextWidth = bottomSubMatrix->GetTextLength(stockPriceStr);
-	//Area bottomTextArea;
-	//Area bottomArrowArea;
+	Area logoArea = tickerArea;
+	logoArea.x0 = tickerArea.x1;
+	logoArea.y0 = 0;
+	logoArea.x1 = width;
+	logoArea.y1 = height / 2;
+	View.CreateSubMatrix(logoArea).Write("Picture");
 
-	//bottomTextArea.x = 0;
-	//bottomTextArea.y = 32;
-	//bottomTextArea.length = 32;
-	//bottomTextArea.width = bottomTextWidth;
+	Area bottomArea;
+	bottomArea.x0 = 0;
+	bottomArea.y0 = tickerArea.y1;
+	bottomArea.x1 = width;
+	bottomArea.y1 = height;
+	auto& bottomSubMatrix = View.CreateSubMatrix(bottomArea);
 
-	//bottomArrowArea.x = bottomTextWidth;
-	//bottomArrowArea.y = 32;
-	//bottomArrowArea.length = 32;
-	//bottomArrowArea.width = 32; // Pick some other more realistic size here.
+	std::string stockPriceStr = GetStockPriceString();
+	auto bottomTextWidth = bottomSubMatrix.GetTextLength(stockPriceStr);
+	Area bottomTextArea;
+	Area bottomArrowArea;
 
-	//bottomSubMatrix->CreateSubMatrix(bottomTextArea)->Write(stockPriceStr);
-	//bottomSubMatrix->CreateSubMatrix(bottomArrowArea)->ShowPicture(m_LogoCache.GetLogoFile(m_Ticker));
+	bottomTextArea.x0 = 0;
+	bottomTextArea.y0 = 0;
+	bottomTextArea.x1 = bottomTextWidth;
+	bottomTextArea.y1 = bottomSubMatrix.GetHeight();
+
+	bottomArrowArea.x0 = bottomTextArea.x1;
+	bottomArrowArea.y0 = 0;
+	bottomArrowArea.x1 = bottomSubMatrix.GetWidth() - bottomTextWidth;
+	bottomArrowArea.y1 = bottomSubMatrix.GetHeight();
+
+	bottomSubMatrix.CreateSubMatrix(bottomTextArea).Write(stockPriceStr);
+
+	std::string arrowPath;
+	if (m_Stock->Price() > m_Stock->OpenPrice())
+	{
+		arrowPath = "./media/up_arrow.png";
+	}
+	else if (m_Stock->Price() < m_Stock->OpenPrice())
+	{
+		arrowPath = "./media/down_arrow.png";
+	}
+	else
+	{
+		arrowPath = "./media/sideways_arrow.png";
+	}
+	bottomSubMatrix.CreateSubMatrix(bottomArrowArea).ShowPicture(arrowPath);
+}
+
+std::string StockAnimation::GetStockPriceString()
+{
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(2) << m_Stock->Price();
+	return stream.str();
 }

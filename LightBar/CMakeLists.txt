@@ -4,11 +4,10 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_library (LightBar_lib STATIC "LightBar.cpp" "LightBar.h" "Animation.h" "Animation.cpp" "Session.h" "SessionManager.h" "LedMatrix.h" "LedMatrix.cpp")
-target_include_directories(LightBar_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(LightBar_lib PUBLIC ../third-party/yahoo-finance/src)
+add_library (LightBar_lib STATIC "LightBar.cpp" "LightBar.h" "LedMatrix.h" "LedMatrix.cpp")
+target_include_directories(LightBar_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(LightBar_lib INTERFACE /usr/include/GraphicsMagick)
 
-target_include_directories(LightBar_lib PRIVATE /usr/include/GraphicsMagick)
 target_link_libraries(LightBar_lib PRIVATE "-lGraphicsMagick++")
 target_link_libraries(LightBar_lib PRIVATE "-lGraphicsMagick")
 target_link_libraries(LightBar_lib PRIVATE "-ljbig")
@@ -33,9 +32,16 @@ target_link_libraries(LightBar_lib PRIVATE "-lm")
 target_link_libraries(LightBar_lib PRIVATE "-lpthread")
 target_link_libraries(LightBar_lib PRIVATE "-lgomp")
 
+add_library(LightBarInterface_lib INTERFACE)
+target_include_directories(LightBar_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 
-target_link_libraries(LightBar_lib PUBLIC yahoo-finance)
+add_library(LightBar_main STATIC "Animation.h" "Animation.cpp" "Session.h" "Session.cpp")
+target_include_directories(LightBar_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(LightBar_main INTERFACE LightBarInterface_lib)
+target_link_libraries(LightBar_main PRIVATE StockUtils_lib)
+target_link_libraries(LightBar_main PRIVATE StockUtils_lib)
+
 
 set_target_properties (
     LightBar_lib PROPERTIES
@@ -46,6 +52,12 @@ find_package (Threads)
 
 target_include_directories(LightBar_lib PUBLIC ../third-party/rpi-rgb-led-matrix/include)
 target_link_libraries(LightBar_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/rpi-rgb-led-matrix/lib/librgbmatrix.a ${CMAKE_THREAD_LIBS_INIT})
+
+ add_custom_target(copy-files ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/media
+    ${CMAKE_BINARY_DIR}/media
+    )
 
 
 # TODO: Add tests and install targets if needed.

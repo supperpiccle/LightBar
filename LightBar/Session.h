@@ -1,47 +1,36 @@
 #pragma once
-#include <list>
+#include <thread>
+#include <vector>
+#include <string>
 #include "Animation.h"
+#include <ILedMatrix.h>
 
 class Session
 {
 public:
-	Session();
-	~Session();
+	Session() = default;
+	~Session() = default;
 
-	void Run();
+	virtual void Signal() = 0;
 
 private:
-	unsigned int m_RuntimeMilliseconds = 0;
-	IDisplay display;
 };
 
-class RollingSession
+class StockSession : public Session
 {
-protected:
-	virtual void AddAnimationCallback() = 0;
-private:
-	std::list<Animation> m_Animations;
-	unsigned int m_Speed = 0;
-};
+	StockSession(std::vector<std::string> Tickers, ILedMatrix& Matrix);
 
-class StockEnumerator
-{
-public:
-	std::string GetNextStock();
+	virtual void Signal() override;
+
 private:
+	void AnimationThread();
+	bool m_Rundown;
+	std::thread m_Thread;
+
+	std::vector<IAnimation> m_Animations;
+
+	ILedMatrix& m_Matrix;
+	unsigned int m_CurrentStockIndex = 0;
+	const unsigned int m_MillisecondsUpdate = 1000;
 	std::vector<std::string> m_Tickers;
-};
-
-class StockSession : public RollingSession
-{
-
-protected:
-	virtual void AddAnimationCallback() override;
-private:
-};
-
-
-class NestedSession
-{
-
 };

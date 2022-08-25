@@ -1,30 +1,9 @@
 #pragma once
 #include <string>
-#include "LedMatrix.h"
-#include "quote.hpp"
+#include <memory>
+#include <ILedMatrix.h>
+#include <Stock.h>
 
-struct AnimationSpace
-{
-	unsigned int x0;
-	unsigned int y0;
-	unsigned int x1;
-	unsigned int y1;
-};
-
-struct AnimationMove
-{
-	unsigned int x;
-	unsigned int y;
-};
-
-struct Pixel
-{
-	unsigned int X;
-	unsigned int Y;
-	unsigned char Red;
-	unsigned char Green;
-	unsigned char Blue;
-};
 struct DisplaySection
 {
 	DisplaySection(
@@ -48,17 +27,7 @@ struct DisplaySection
 
 class IAnimation
 {
-	virtual void Draw(LedMatrixView* View) = 0;
-};
-
-class RainbowAnimation : public IAnimation
-{
-
-};
-
-class WeatherAnimation : public IAnimation
-{
-
+	virtual void Draw(ILedMatrixView& View) = 0;
 };
 
 class StockAnimation : public IAnimation
@@ -66,16 +35,14 @@ class StockAnimation : public IAnimation
 public:
 	StockAnimation(std::string Ticker);
 
-	void Draw(LedMatrixView* View) override;
+	void Draw(ILedMatrixView& View) override;
 
 private:
 	std::string m_Ticker;
-	StockQuote m_CurrentQuote = {0};
 	std::string m_LogoImagePath;
-	Details::StockLogoCache m_LogoCache;
+	std::unique_ptr<IStock> m_Stock;
 
-	const unsigned int m_MillisecondsUpdate = 1000;
-
+	std::string GetStockPriceString();
 };
 
 // session manager picks session and runs it, then picks another.

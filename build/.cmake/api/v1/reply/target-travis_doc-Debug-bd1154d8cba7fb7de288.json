@@ -1,0 +1,35 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target"
+		],
+		"files" : 
+		[
+			"third-party/rapidjson/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 166,
+				"parent" : 0
+			}
+		]
+	},
+	"id" : "travis_doc::@c1e908b02d0a623c6c54",
+	"name" : "travis_doc",
+	"paths" : 
+	{
+		"build" : "third-party/rapidjson",
+		"source" : "third-party/rapidjson"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}
