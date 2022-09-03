@@ -7,6 +7,7 @@ cmake_minimum_required (VERSION 3.8)
 add_library (LightBar_lib STATIC "LightBar.cpp" "LightBar.h" "LedMatrix.h" "LedMatrix.cpp")
 target_include_directories(LightBar_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(LightBar_lib INTERFACE /usr/include/GraphicsMagick)
+target_include_directories(LightBar_lib PRIVATE /usr/include/GraphicsMagick)
 
 target_link_libraries(LightBar_lib PRIVATE "-lGraphicsMagick++")
 target_link_libraries(LightBar_lib PRIVATE "-lGraphicsMagick")
@@ -36,11 +37,16 @@ add_library(LightBarInterface_lib INTERFACE)
 target_include_directories(LightBar_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 
-add_library(LightBar_main STATIC "Animation.h" "Animation.cpp" "Session.h" "Session.cpp")
+add_library(LightBar_main STATIC "Animation.h" "Animation.cpp" "Session.h" "Session.cpp" "SessionManager.h" "SessionManager.cpp")
 target_include_directories(LightBar_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(LightBar_main INTERFACE LightBarInterface_lib)
 target_link_libraries(LightBar_main PRIVATE StockUtils_lib)
 target_link_libraries(LightBar_main PRIVATE StockUtils_lib)
+
+add_executable(LightBar_exe "main.cpp")
+target_link_libraries(LightBar_exe PRIVATE LightBar_main)
+target_link_libraries(LightBar_exe PRIVATE LightBar_lib)
+target_link_libraries(LightBar_exe PRIVATE StockUtils_lib)
 
 
 set_target_properties (

@@ -11,6 +11,7 @@ enum class StockUpdateResult
 class IStock
 {
 public:
+    virtual std::string Ticker() = 0;
     virtual double Price() = 0;
     virtual unsigned int Volume() = 0;
     virtual double OpenPrice() = 0;
@@ -26,6 +27,7 @@ class Stock : public IStock
 public:
     Stock(const std::string& Ticker);
 
+    virtual std::string Ticker() override;
     virtual double Price() override;
     virtual unsigned int Volume() override;
     virtual double OpenPrice() override;

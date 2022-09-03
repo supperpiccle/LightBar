@@ -19,6 +19,17 @@ struct Area
 	int y0;
 	int x1;
 	int y1;
+
+	Area operator+(const Area& rhs)
+	{
+		Area ret;
+		ret.x0 = x0 + rhs.x0;
+		ret.x1 = x1 + rhs.x1;
+		ret.y0 = y0 + rhs.y0;
+		ret.y1 = y1 + rhs.y1;
+
+		return ret;
+	}
 };
 
 enum class Positioning
@@ -48,6 +59,8 @@ public:
 	virtual void ShowPicture(std::string PicturePath) = 0;
 	virtual void ApplyCustomBitmap(std::function<void(RGB, unsigned int x, unsigned int y)> callback) = 0;
 	virtual void SplashColor(RGB Color) = 0;
+	virtual void Shift(int Up, int Right) = 0;
+	virtual Area GetAbsoluteArea() = 0;
 
 	virtual unsigned int GetHeight() = 0;
 	virtual unsigned int GetWidth() = 0;

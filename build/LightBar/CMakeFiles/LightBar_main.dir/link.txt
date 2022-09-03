@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../lib/libLightBar_main.a  CMakeFiles/LightBar_main.dir/Animation.cpp.o CMakeFiles/LightBar_main.dir/Session.cpp.o
-/usr/bin/ranlib ../lib/libLightBar_main.a

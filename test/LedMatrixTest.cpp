@@ -14,32 +14,32 @@
 #include <sstream>
 #include <filesystem>
 
-void CommandWrite(LedMatrixView* View, const std::string& Args);
-void CommandPicture(LedMatrixView* View, const std::string& Args);
-void MultiCommand(LedMatrixView* View, const std::string& Args);
-void MultiCommandFile(LedMatrixView* View, const std::string& Args);
+void CommandWrite(ILedMatrixView* View, const std::string& Args);
+void CommandPicture(ILedMatrixView* View, const std::string& Args);
+void MultiCommand(ILedMatrixView* View, const std::string& Args);
+void MultiCommandFile(ILedMatrixView* View, const std::string& Args);
 
 LedMatrix matrix;
-LedMatrixView* view;
+ILedMatrixView* view;
 //std::vector<std::unique_ptr<LedMatrixView>> subViews;
-std::map<std::string, void(*)(LedMatrixView*, const std::string&)> g_CommandMap = {
+std::map<std::string, void(*)(ILedMatrixView*, const std::string&)> g_CommandMap = {
     {"write", CommandWrite},
     {"picture", CommandPicture},
     {"command", MultiCommandFile}
 };
 
 
-void CommandWrite(LedMatrixView* View, const std::string& Args)
+void CommandWrite(ILedMatrixView* View, const std::string& Args)
 {
     View->Write(Args);
 }
 
-void CommandPicture(LedMatrixView* View, const std::string& Args)
+void CommandPicture(ILedMatrixView* View, const std::string& Args)
 {
     View->ShowPicture(Args);
 }
 
-void MultiCommand(LedMatrixView* View, const std::string& Args)
+void MultiCommand(ILedMatrixView* View, const std::string& Args)
 {
     rapidjson::Document doc;
     doc.Parse(Args.c_str());
@@ -60,7 +60,7 @@ void MultiCommand(LedMatrixView* View, const std::string& Args)
     }
 }
 
-void MultiCommandFile(LedMatrixView* View, const std::string& Args)
+void MultiCommandFile(ILedMatrixView* View, const std::string& Args)
 {
     if (!std::filesystem::exists(Args))
     {

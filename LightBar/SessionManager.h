@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "ILedMatrix.h"
 
 class SessionManager
@@ -9,5 +10,5 @@ public:
 
     void Run(ILedMatrix& Matrix);
 private:
-    std::string m_Tickers;
+    std::vector<std::string> m_Tickers;
 };

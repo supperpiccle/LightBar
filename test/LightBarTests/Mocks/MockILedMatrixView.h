@@ -14,6 +14,8 @@ class MockLedMatrixView : public ILedMatrixView
 	MOCK_METHOD(void, ShowPicture, (std::string PicturePath), (override));
 	MOCK_METHOD(void, ApplyCustomBitmap, (std::function<void(RGB, unsigned int x, unsigned int y)> callback), (override));
 	MOCK_METHOD(void, SplashColor, (RGB Color), (override));
+	MOCK_METHOD(void, Shift, (int Up, int Right), (override));
+	MOCK_METHOD(Area, GetAbsoluteArea, (), (override));
 
 	MOCK_METHOD(unsigned int, GetHeight, (), (override));
 	MOCK_METHOD(unsigned int, GetWidth, (), (override));

@@ -1,5 +1,6 @@
 #include "Animation.h"
 #include <sstream>
+#include <string>
 #include <iomanip>
 
 StockAnimation::StockAnimation(std::string Ticker)
@@ -61,25 +62,28 @@ void StockAnimation::Draw(ILedMatrixView& View)
 
 	bottomArrowArea.x0 = bottomTextArea.x1;
 	bottomArrowArea.y0 = 0;
-	bottomArrowArea.x1 = bottomSubMatrix.GetWidth() - bottomTextWidth;
-	bottomArrowArea.y1 = bottomSubMatrix.GetHeight();
+	bottomArrowArea.x1 = bottomArrowArea.x0 + (bottomSubMatrix.GetWidth() - bottomTextWidth);
+	bottomArrowArea.y1 = 8;
 
 	bottomSubMatrix.CreateSubMatrix(bottomTextArea).Write(stockPriceStr);
 
 	std::string arrowPath;
 	if (m_Stock->Price() > m_Stock->OpenPrice())
 	{
-		arrowPath = "./media/up_arrow.png";
+		
+		arrowPath = "/home/pi/LightBar/LightBar/build/media/up_arrow.png";
 	}
 	else if (m_Stock->Price() < m_Stock->OpenPrice())
 	{
-		arrowPath = "./media/down_arrow.png";
+		arrowPath = "/home/pi/LightBar/LightBar/build/media/down_arrow.png";
 	}
 	else
 	{
-		arrowPath = "./media/sideways_arrow.png";
+		arrowPath = "/home/pi/LightBar/LightBar/build/media/sideways_arrow.png";
 	}
 	bottomSubMatrix.CreateSubMatrix(bottomArrowArea).ShowPicture(arrowPath);
+	//bottomSubMatrix.CreateSubMatrix(bottomArrowArea).Write("Arrow");
+
 }
 
 std::string StockAnimation::GetStockPriceString()

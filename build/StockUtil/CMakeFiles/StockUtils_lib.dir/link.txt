@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../lib/libStockUtils_lib.a  CMakeFiles/StockUtils_lib.dir/Stock.cpp.o
-/usr/bin/ranlib ../lib/libStockUtils_lib.a

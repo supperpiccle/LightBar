@@ -10,3 +10,6 @@
 [submodule "third-party/rapidjson"]
 	path = third-party/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "third-party/rpi-rgb-led-matrix"]
+	path = third-party/rpi-rgb-led-matrix
+	url = https://github.com/hzeller/rpi-rgb-led-matrix.git

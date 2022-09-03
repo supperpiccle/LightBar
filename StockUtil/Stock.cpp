@@ -22,6 +22,11 @@ Stock::Stock(const std::string& Ticker)
     Update();
 }
 
+std::string Stock::Ticker()
+{
+    return m_Ticker;
+}
+
 double Stock::Price()
 {
     return m_CurrentPrice;
@@ -105,18 +110,29 @@ StockUpdateResult Stock::Update()
         rapidjson::Document doc;
         doc.Parse(serverResponse);
 
-        const auto& globalQuote = doc["Global Quote"].GetObject();
+        try
+        {
+            if (!doc.HasMember("Global Quote"))
+            {
+                return StockUpdateResult::Error;
+            }
+            const auto& globalQuote = doc["Global Quote"].GetObject();
 
-        m_OpenPrice = atof(globalQuote["02. open"].GetString());
-        m_HighPrice = atof(globalQuote["03. high"].GetString());
-        m_LowPrice = atof(globalQuote["04. low"].GetString());
-        m_CurrentPrice = atof(globalQuote["05. price"].GetString());
-        m_Volume = atoi(globalQuote["06. volume"].GetString());
-        //atof(globalQuote["07. latest trading day"].GetString());
-        m_ClosePrice = atof(globalQuote["08. previous close"].GetString());
-        //atof(globalQuote["09. change"].GetString());
-        //atof(globalQuote["10. change percent"].GetString());
-        return StockUpdateResult::Success;
+            m_OpenPrice = atof(globalQuote["02. open"].GetString());
+            m_HighPrice = atof(globalQuote["03. high"].GetString());
+            m_LowPrice = atof(globalQuote["04. low"].GetString());
+            m_CurrentPrice = atof(globalQuote["05. price"].GetString());
+            m_Volume = atoi(globalQuote["06. volume"].GetString());
+            //atof(globalQuote["07. latest trading day"].GetString());
+            m_ClosePrice = atof(globalQuote["08. previous close"].GetString());
+            //atof(globalQuote["09. change"].GetString());
+            //atof(globalQuote["10. change percent"].GetString());
+            return StockUpdateResult::Success;
+        }
+        catch(...)
+        {
+            return StockUpdateResult::Error;
+        }
     }
     catch(const std::exception& e)
     {

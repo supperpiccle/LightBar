@@ -8,6 +8,7 @@ public:
     MockStock() = default;
     ~MockStock() = default;
 
+    MOCK_METHOD(std::string, Ticker, (), (override));
     MOCK_METHOD(double, Price, (), (override));
     MOCK_METHOD(unsigned int, Volume, (), (override));
     MOCK_METHOD(double, OpenPrice, (), (override));

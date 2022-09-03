@@ -96,18 +96,11 @@ void CopyImageToCanvas(int offset_x, int offset_y, const Magick::Image &image, r
   }
 }
 
-LedMatrixView::LedMatrixView(Area MatrixArea, rgb_matrix::FrameCanvas **Offscreen_canvas)
+LedMatrixView::LedMatrixView(Area MatrixArea, rgb_matrix::FrameCanvas **Offscreen_canvas, std::shared_ptr<rgb_matrix::Font> Font)
 {
-	auto fonts = GetFontFiles();
-	m_FontFilePath = fonts[0];
-	m_Font = std::make_shared<rgb_matrix::Font>();
-  	if (!m_Font->LoadFont(m_FontFilePath.c_str())) {
-  	  fprintf(stderr, "Couldn't load font '%s'\n", m_FontFilePath.c_str());
-		throw std::runtime_error("Failed to load font");
-  	}
-
 	m_MyArea = MatrixArea;
 	m_Offscreen_canvas = Offscreen_canvas;
+	m_Font = Font;
 
 	std::lock_guard<std::mutex> lock(m_RedrawMutex);
 	m_UpdateCanvasFunction = [this]()
@@ -122,28 +115,23 @@ void LedMatrixView::UpdateCanvas()
 	m_UpdateCanvasFunction();
 }
 
-std::vector<std::string> LedMatrixView::GetFontFiles()
+
+void LedMatrixView::ApplyCustomBitmap(std::function<void(RGB, unsigned int x, unsigned int y)> callback)
 {
-	std::regex font_regex = std::regex("[0-9]*x[0-9]*\\.bdf");
-	std::string font_path = "/home/pi/LightBar/third-party/rpi-rgb-led-matrix/fonts/";
-	std::vector<std::string> fonts;
-	for (const auto& entry : std::filesystem::directory_iterator(font_path))
-	{
-		std::string path = entry.path();
-		std::string filename = path.substr(path.rfind('/') + 1);
-		if (std::regex_match(filename, font_regex))
-		{
-			fonts.push_back(entry.path());
-		}
-	}
-	return fonts;
+	return;
 }
 
 ILedMatrixView& LedMatrixView::CreateSubMatrix(Area area)
 {
 	std::lock_guard<std::mutex> lock(m_RedrawMutex);
 
-	m_NestedViews.emplace_back(area, m_Offscreen_canvas);
+	Area nestedArea;
+	nestedArea.x0 = m_MyArea.x0 + area.x0;
+	nestedArea.x1 = m_MyArea.x0 + area.x1;
+	nestedArea.y0 = m_MyArea.y0 + area.y0;
+	nestedArea.y1 = m_MyArea.y0 + area.y1;
+
+	m_NestedViews.emplace_back(nestedArea, m_Offscreen_canvas, m_Font);
 	m_UpdateCanvasFunction = [this]()
 	{
 		for (auto& subView : m_NestedViews)
@@ -152,6 +140,23 @@ ILedMatrixView& LedMatrixView::CreateSubMatrix(Area area)
 		}
 	};
 	return m_NestedViews.back();
+}
+
+void LedMatrixView::Shift(int Up, int Right)
+{
+	m_MyArea.x0 += Right;
+	m_MyArea.x1 += Right;
+	m_MyArea.y0 -= Up;
+	m_MyArea.y1 -= Up;
+	for (auto& nested_view : m_NestedViews)
+	{
+		nested_view.Shift(Up, Right);
+	}
+}
+
+Area LedMatrixView::GetAbsoluteArea()
+{
+	return m_MyArea;
 }
 
 bool LedMatrixView::Write(std::string text)
@@ -167,7 +172,8 @@ bool LedMatrixView::Write(std::string text)
 	assert(m_MyArea.x0 < m_MyArea.x1);
 	auto x_diff = m_MyArea.x1 - m_MyArea.x0;
 
-	while (GetStringWidth(text) > x_diff)
+	auto copy = text;
+	while (GetTextLength(text) > x_diff)
 	{
 		text = text.substr(0, text.length() - 1);
 	}
@@ -189,7 +195,7 @@ bool LedMatrixView::Write(std::string text)
 	};
 }
 
-unsigned int LedMatrixView::GetStringWidth(std::string text)
+unsigned int LedMatrixView::GetTextLength(std::string text)
 {
 	unsigned int count = 0;
 	for (auto c : text)
@@ -226,7 +232,11 @@ unsigned int LedMatrixView::GetWidth()
 
 void LedMatrixView::ClearSubViews()
 {
-	return m_NestedViews.clear();
+	std::lock_guard<std::mutex> lock(m_RedrawMutex);
+	m_NestedViews.clear();
+	m_UpdateCanvasFunction = []()
+	{
+	};
 }
 
 //-------------------------------------------------------------------------
@@ -257,7 +267,15 @@ LedMatrix::LedMatrix()
 
     std::call_once( onceFlag, [ ]{ Magick::InitializeMagick(nullptr); });
 
-	m_View = std::shared_ptr<LedMatrixView>(new LedMatrixView(area, &m_Offscreen_canvas));
+	auto fonts = GetFontFiles();
+	m_FontFilePath = fonts[0];
+	m_Font = std::make_shared<rgb_matrix::Font>();
+  	if (!m_Font->LoadFont(m_FontFilePath.c_str())) {
+  	  fprintf(stderr, "Couldn't load font '%s'\n", m_FontFilePath.c_str());
+		throw std::runtime_error("Failed to load font");
+  	}
+
+	m_View = std::shared_ptr<LedMatrixView>(new LedMatrixView(area, &m_Offscreen_canvas, m_Font));
 	auto *t = new std::thread(&LedMatrix::WorkerThread, this);
     m_AsyncUpdateThread = std::unique_ptr<std::thread>(t);
 }
@@ -271,7 +289,7 @@ LedMatrix::~LedMatrix()
 	}
 }
 
-LedMatrixView* LedMatrix::CreateView()
+ILedMatrixView* LedMatrix::CreateView()
 {
 	return m_View.get();
 }
@@ -296,12 +314,27 @@ void LedMatrix::Redraw()
 
 void LedMatrix::WorkerThread()
 {
-	while(!m_Rundown)
+	//while(!m_Rundown)
+	//{
+		//m_View->UpdateCanvas();
+		//Draw();
+		//std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	//}
+}
+
+std::vector<std::string> LedMatrix::GetFontFiles()
+{
+	std::regex font_regex = std::regex("[0-9]*x[0-9]*\\.bdf");
+	std::string font_path = "/home/pi/LightBar/LightBar/third-party/rpi-rgb-led-matrix/fonts/";
+	std::vector<std::string> fonts;
+	for (const auto& entry : std::filesystem::directory_iterator(font_path))
 	{
+		std::string path = entry.path();
+		std::string filename = path.substr(path.rfind('/') + 1);
+		if (std::regex_match(filename, font_regex))
 		{
-			m_View->UpdateCanvas();
+			fonts.push_back(entry.path());
 		}
-		Draw();
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+	return fonts;
 }
