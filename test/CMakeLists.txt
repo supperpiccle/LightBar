@@ -19,4 +19,9 @@ target_link_libraries(StockTests PUBLIC StockUtils_lib)
 target_link_libraries(StockTests PUBLIC rapidjson)
 target_link_libraries(LedMatrixTests PUBLIC LightBar_lib)
 
+set_target_properties (
+    StockTests PROPERTIES
+    CXX_STANDARD 17
+    )
+
 add_subdirectory(LightBarTests)

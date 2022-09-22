@@ -70,7 +70,6 @@ void StockAnimation::Draw(ILedMatrixView& View)
 	std::string arrowPath;
 	if (m_Stock->Price() > m_Stock->OpenPrice())
 	{
-		
 		arrowPath = "/home/pi/LightBar/LightBar/build/media/up_arrow.png";
 	}
 	else if (m_Stock->Price() < m_Stock->OpenPrice())

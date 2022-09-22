@@ -34,7 +34,7 @@ target_link_libraries(LightBar_lib PRIVATE "-lpthread")
 target_link_libraries(LightBar_lib PRIVATE "-lgomp")
 
 add_library(LightBarInterface_lib INTERFACE)
-target_include_directories(LightBar_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(LightBarInterface_lib INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 
 
 add_library(LightBar_main STATIC "Animation.h" "Animation.cpp" "Session.h" "Session.cpp" "SessionManager.h" "SessionManager.cpp")

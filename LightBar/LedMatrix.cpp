@@ -221,6 +221,11 @@ void LedMatrixView::SplashColor(RGB Color)
 	(*m_Offscreen_canvas)->Fill(Color.Red, Color.Green, Color.Blue);
 }
 
+void LedMatrixView::SetPixal(unsigned int x, unsigned int y, RGB color)
+{
+
+}
+
 unsigned int LedMatrixView::GetHeight()
 {
 	return m_MyArea.y1 - m_MyArea.y0;

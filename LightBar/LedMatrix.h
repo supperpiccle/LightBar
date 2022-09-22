@@ -19,6 +19,7 @@ public:
 	void ShowPicture(std::string PicturePath) override;
 	void ApplyCustomBitmap(std::function<void(RGB, unsigned int x, unsigned int y)> callback) override;
 	void SplashColor(RGB Color) override;
+	void SetPixal(unsigned int x, unsigned int y, RGB color) override;
 	void Shift(int Up, int Right) override;
 	Area GetAbsoluteArea() override;
 

@@ -58,6 +58,7 @@ public:
 	virtual unsigned int GetTextLength(std::string text) = 0;
 	virtual void ShowPicture(std::string PicturePath) = 0;
 	virtual void ApplyCustomBitmap(std::function<void(RGB, unsigned int x, unsigned int y)> callback) = 0;
+	virtual void SetPixal(unsigned int x, unsigned int y, RGB color) = 0;
 	virtual void SplashColor(RGB Color) = 0;
 	virtual void Shift(int Up, int Right) = 0;
 	virtual Area GetAbsoluteArea() = 0;

@@ -1,5 +1,6 @@
 #include <Stock.h>
 #include <queue>
+#include <filesystem>
 
 class MockStock : public IStock
 {
@@ -21,6 +22,10 @@ std::queue<std::unique_ptr<MockStock>> g_GlobalStockMocks;
 
 std::unique_ptr<IStock> CreateStock(std::string Ticker)
 {
+    if (Details::g_StockLogoCache == nullptr)
+    {
+        Details::g_StockLogoCache = std::make_unique<Details::InternetPictureCache>(std::filesystem::temp_directory_path());
+    }
     if (g_GlobalStockMocks.empty())
     {
         return std::make_unique<MockStock>();
