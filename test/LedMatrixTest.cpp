@@ -16,6 +16,9 @@
 
 void CommandWrite(ILedMatrixView* View, const std::string& Args);
 void CommandPicture(ILedMatrixView* View, const std::string& Args);
+void CommandShiftx(ILedMatrixView* View, const std::string& Args);
+void CommandShifty(ILedMatrixView* View, const std::string& Args);
+void CommandResetPostion(ILedMatrixView* View, const std::string& Args);
 void MultiCommand(ILedMatrixView* View, const std::string& Args);
 void MultiCommandFile(ILedMatrixView* View, const std::string& Args);
 
@@ -25,22 +28,50 @@ ILedMatrixView* view;
 std::map<std::string, void(*)(ILedMatrixView*, const std::string&)> g_CommandMap = {
     {"write", CommandWrite},
     {"picture", CommandPicture},
+    {"shiftx", CommandShiftx},
+    {"shifty", CommandShifty},
+    {"resetposition", CommandResetPostion},
     {"command", MultiCommandFile}
 };
 
 
+int g_xShifted = 0;
+int g_yShifted = 0;
+
 void CommandWrite(ILedMatrixView* View, const std::string& Args)
 {
+    view->ClearSubViews();
     View->Write(Args);
 }
 
 void CommandPicture(ILedMatrixView* View, const std::string& Args)
 {
+    view->ClearSubViews();
     View->ShowPicture(Args);
+}
+
+void CommandShiftx(ILedMatrixView* View, const std::string& Args)
+{
+    int x = atoi(Args.c_str());
+    g_xShifted += x;
+    View->Shift(0, x);
+}
+void CommandShifty(ILedMatrixView* View, const std::string& Args)
+{
+    int y = atoi(Args.c_str());
+    g_yShifted += y;
+    View->Shift(y, 0);
+}
+void CommandResetPostion(ILedMatrixView* View, const std::string& Args)
+{
+    View->Shift(-g_yShifted, -g_xShifted);
+    g_xShifted = 0;
+    g_yShifted = 0;
 }
 
 void MultiCommand(ILedMatrixView* View, const std::string& Args)
 {
+    view->ClearSubViews();
     rapidjson::Document doc;
     doc.Parse(Args.c_str());
 
@@ -62,6 +93,7 @@ void MultiCommand(ILedMatrixView* View, const std::string& Args)
 
 void MultiCommandFile(ILedMatrixView* View, const std::string& Args)
 {
+    view->ClearSubViews();
     if (!std::filesystem::exists(Args))
     {
         std::cout << "File " << Args << " does not exist!" << std::endl;
@@ -82,6 +114,12 @@ int main(int argc, char** argv)
     std::cout << "Writing the static word \"" << text << "\"" << std::endl;
 
     view = matrix.CreateView();
+    Area tempArea;
+    tempArea.x0 = 0;
+    tempArea.y0 = 0;
+    tempArea.x1 = 128;
+    tempArea.y1 = 52;
+    view->SetAbsoluteArea(tempArea);
 
     view->Write(text);
     matrix.Draw();
@@ -94,7 +132,6 @@ int main(int argc, char** argv)
 
         std::getline(std::cin, user_command);
 
-        view->ClearSubViews();
 
         std::string command = user_command.substr(0, user_command.find(' '));
         std::string args = user_command.substr(user_command.find(' ') + 1);

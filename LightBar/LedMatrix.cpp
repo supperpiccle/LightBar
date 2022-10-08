@@ -158,6 +158,10 @@ Area LedMatrixView::GetAbsoluteArea()
 {
 	return m_MyArea;
 }
+void LedMatrixView::SetAbsoluteArea(Area area)
+{
+	m_MyArea = area;
+}
 
 bool LedMatrixView::Write(std::string text)
 {
@@ -218,12 +222,25 @@ void LedMatrixView::ShowPicture(std::string PicturePath)
 }
 void LedMatrixView::SplashColor(RGB Color)
 {
-	(*m_Offscreen_canvas)->Fill(Color.Red, Color.Green, Color.Blue);
+	// TODO: This doesn't work!
+	//(*m_Offscreen_canvas)->Fill(Color.Red, Color.Green, Color.Blue);
 }
 
 void LedMatrixView::SetPixal(unsigned int x, unsigned int y, RGB color)
 {
-
+	std::lock_guard<std::mutex> lock(m_RedrawMutex);
+	m_CustomPixels.push_back(CustomPixel{x, y, color});
+	m_UpdateCanvasFunction = [this]() mutable
+	{
+		for (const auto& entry : m_CustomPixels)
+		{
+			(*m_Offscreen_canvas)->SetPixel(entry.x + m_MyArea.x0,
+										    entry.y + m_MyArea.y0,
+										    entry.color.Red,
+											entry.color.Green,
+											entry.color.Blue);
+		}
+	};
 }
 
 unsigned int LedMatrixView::GetHeight()
@@ -239,6 +256,7 @@ void LedMatrixView::ClearSubViews()
 {
 	std::lock_guard<std::mutex> lock(m_RedrawMutex);
 	m_NestedViews.clear();
+	m_CustomPixels.clear();
 	m_UpdateCanvasFunction = []()
 	{
 	};
@@ -280,7 +298,7 @@ LedMatrix::LedMatrix()
 		throw std::runtime_error("Failed to load font");
   	}
 
-	m_View = std::shared_ptr<LedMatrixView>(new LedMatrixView(area, &m_Offscreen_canvas, m_Font));
+	//m_View = std::shared_ptr<LedMatrixView>(new LedMatrixView(area, &m_Offscreen_canvas, m_Font));
 	auto *t = new std::thread(&LedMatrix::WorkerThread, this);
     m_AsyncUpdateThread = std::unique_ptr<std::thread>(t);
 }
@@ -296,12 +314,22 @@ LedMatrix::~LedMatrix()
 
 ILedMatrixView* LedMatrix::CreateView()
 {
-	return m_View.get();
+	//std::lock_guard<std::mutex> lock(m_RedrawMutex);
+	Area area;
+	area.x0 = 0;
+	area.y0 = 0;
+	area.x1 = 64;
+	area.y1 = 64;
+	m_View.emplace_back(area, &m_Offscreen_canvas, m_Font);
+	return &m_View.back();
 }
 void LedMatrix::Draw()
 {
 	std::lock_guard<std::mutex> lock(m_RedrawMutex);
-	m_View->UpdateCanvas();
+	for (auto& view : m_View)
+	{
+		view.UpdateCanvas();
+	}
     // Swap the offscreen_canvas with canvas on vsync, avoids flickering
     m_Offscreen_canvas = m_Canvas->SwapOnVSync(m_Offscreen_canvas);
 

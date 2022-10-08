@@ -15,6 +15,7 @@ public:
     MOCK_METHOD(double, OpenPrice, (), (override));
     MOCK_METHOD(double, ClosePrice, (), (override));
     MOCK_METHOD(double, ChangeToday, (), (override));
+    MOCK_METHOD(IPicture&, Logo, (), (override));
     MOCK_METHOD(StockUpdateResult, Update, (), (override)); 
 };
 

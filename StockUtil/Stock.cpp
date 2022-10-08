@@ -249,7 +249,6 @@ StockUpdateResult YahooStock::Update()
 
 Picture::Picture(std::string path)
 {
-    ImageVector result;
     ImageVector frames;
 
     try
@@ -273,11 +272,11 @@ Picture::Picture(std::string path)
     // Animated images have partial frames that need to be put together
     if (frames.size() > 1)
     {
-        Magick::coalesceImages(&result, frames.begin(), frames.end());
+        Magick::coalesceImages(&m_Images, frames.begin(), frames.end());
     }
     else
     {
-        result.push_back(frames[0]); // just a single still image.
+        m_Images.push_back(frames[0]); // just a single still image.
     }
 }
 
@@ -285,6 +284,7 @@ std::string Picture::GetPath()
 {
     return m_Path;
 }
+
 void Picture::ApplyImage(ILedMatrixView& View)
 {
     for (Magick::Image &image : m_Images)

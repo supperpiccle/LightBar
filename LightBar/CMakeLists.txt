@@ -48,9 +48,19 @@ target_link_libraries(LightBar_exe PRIVATE LightBar_main)
 target_link_libraries(LightBar_exe PRIVATE LightBar_lib)
 target_link_libraries(LightBar_exe PRIVATE StockUtils_lib)
 
+set_target_properties (
+    LightBar_exe PROPERTIES
+    CXX_STANDARD 17
+    )
+
 
 set_target_properties (
     LightBar_lib PROPERTIES
+    CXX_STANDARD 17
+    )
+
+set_target_properties (
+    LightBar_main PROPERTIES
     CXX_STANDARD 17
     )
 

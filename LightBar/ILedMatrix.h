@@ -62,6 +62,7 @@ public:
 	virtual void SplashColor(RGB Color) = 0;
 	virtual void Shift(int Up, int Right) = 0;
 	virtual Area GetAbsoluteArea() = 0;
+	virtual void SetAbsoluteArea(Area area) = 0;
 
 	virtual unsigned int GetHeight() = 0;
 	virtual unsigned int GetWidth() = 0;

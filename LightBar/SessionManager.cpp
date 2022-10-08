@@ -34,6 +34,6 @@ void SessionManager::Run(ILedMatrix& Matrix)
     }
 
     StockSession session(m_Tickers, Matrix);
-    //std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
-    std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::seconds(25));
+    std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
+    //std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::seconds(25));
 }

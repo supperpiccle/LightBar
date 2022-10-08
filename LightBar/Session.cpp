@@ -3,16 +3,17 @@
 #include <queue>
 #include <future>
 #include <iostream>
+#include <algorithm>
+#include <execution>
 
 struct StockAreaPack
 {
-    StockAnimation stock;
-    Area area;
+    StockAnimation& stock;
+    ILedMatrixView& view;
 };
 
 StockRequest::StockRequest()
 {
-    m_Thread = std::thread(&StockRequest::ThreadFunction, this);
 }
 StockRequest::~StockRequest()
 {
@@ -90,85 +91,77 @@ void StockSession::Signal()
 
 void StockSession::AnimationThread()
 {
-    StockRequest stockRequestor;
     std::deque<StockAreaPack> stockPack;
+    Area backArea;
     Area frontArea;
-    Area totalArea;
 
-    auto numInList = std::min(15, (int)m_Tickers.size());
+    std::vector<std::string> tickers = {"CRWD", "MSFT", "IBM", "AMD", "SU", "GME", "INTC", "APPL", "CRSR", "RF", "SPDR", "JJ"};
+    std::vector<StockAnimation> animations;
 
-    for(int i = 0; i < numInList; i++)
-    {
-        Area area;
-        area.x0 = 0 - (64*i);
-        area.x1 = 64 - (64*i);
-        area.y0 = 0;
-        area.y1 = 64;
-
-        stockPack.push_back({StockAnimation("Crwd"), area});
-    }
-
-    frontArea = stockPack.front().area;
-
-    if (frontArea.x0 == 0)
-    {
-        frontArea.x0 = -64;
-        frontArea.x1 = 0;
-    }
-
-    totalArea.x0 = stockPack.front().area.x0;
-    totalArea.x1 = stockPack.back().area.x1;
-    totalArea.y0 = 0;
-    totalArea.y1 = 64;
+    animations.reserve(tickers.size());
 
     //
     // Clear the matrix and get our root view.
     //
     m_Matrix.Clear();
-    auto rootView = m_Matrix.CreateView();
-    rootView->ClearSubViews();
-    ILedMatrixView* tempView;
+    std::mutex mut;
+
+    std::for_each(std::execution::par,
+                  tickers.begin(), tickers.end(),
+                  [&mut, &animations](std::string Ticker)
+                  {
+                      StockAnimation animation(Ticker);
+                      std::lock_guard<std::mutex> lck(mut);
+                      animations.push_back(std::move(animation));
+                  });
+
+    for(int i = 0; i < tickers.size(); i++)
+    {
+        Area area;
+        area.x0 = -64 - (48*i);
+        area.x1 = 0 - (48*i);
+        area.y0 = 0;
+        area.y1 = 64;
+
+        auto animationView = m_Matrix.CreateView();
+        animationView->SetAbsoluteArea(area);
+        stockPack.push_back(StockAreaPack{animations[i], *animationView});
+    }
     for (auto& pack : stockPack)
     {
-        auto& animationView = rootView->CreateSubMatrix(pack.area);
-        pack.stock.Draw(animationView);
-        tempView = &animationView;
+        pack.stock.Draw(pack.view);
     }
-    stockRequestor.Issue("Crwd");
+
+    backArea = stockPack.back().view.GetAbsoluteArea();
+    frontArea = stockPack.front().view.GetAbsoluteArea();
+    auto shiftLength = backArea.x0 - frontArea.x0;
+
     while(!m_Rundown)
     {
         m_Matrix.Draw();
-        tempView->Shift(0, 1);
+        for (auto& pack : stockPack)
+        {
+            pack.view.Shift(0, 1);
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(m_MillisecondsUpdate));
 
-        //
-        // Move each animation up a pixel.  If any of them go past our panel, remove it.
-        //
-        //for (auto& pack : stockPack)
-        //{
-        //    auto& animationView = rootView->CreateSubMatrix(pack.area);
-        //    pack.stock.Draw(animationView);
-        //}
-        //for (auto& pack : stockPack)
-        //{
-        //    pack.area.x0++;
-        //    pack.area.x1++;
-        //}
-        //if (stockPack.back().area.x0 == 64)
-        if (tempView->GetAbsoluteArea().x0 == 64)
+        if (stockPack.front().view.GetAbsoluteArea().x0 == 64)
         {
-            stockPack.pop_back();
-            stockPack.push_front({stockRequestor.GetNext(), frontArea});
+            auto offscreenPack = stockPack.front();
+            stockPack.pop_front();
 
-            auto& animationView = rootView->CreateSubMatrix(frontArea);
-            stockPack.front().stock.Draw(animationView);
-            tempView = &animationView;
-            stockRequestor.Issue("Crwd");
+            //
+            // When we put this in the back issue a stock update.
+            //
+            auto result = offscreenPack.stock.DoStockUpdateAsync();
+            if (result == StockUpdateStatus::StillRunning)
+            {
+                std::cout << "Ticker " << offscreenPack.stock.GetTicker() << " already updating!\n";
+            }
+
+            int extraShift = stockPack.size() > 1 ? 64 : 128;
+            offscreenPack.view.Shift(0, shiftLength - extraShift);
+            stockPack.push_back(offscreenPack);
         }
     }
-}
-
-void StockSession::StockUpdateThread()
-{
-
 }

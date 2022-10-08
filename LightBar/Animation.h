@@ -3,6 +3,7 @@
 #include <memory>
 #include <ILedMatrix.h>
 #include <Stock.h>
+#include <future>
 
 struct DisplaySection
 {
@@ -30,12 +31,23 @@ class IAnimation
 	virtual void Draw(ILedMatrixView& View) = 0;
 };
 
+enum class StockUpdateStatus
+{
+	Success, Error, StillRunning
+};
+
+//
+// TODO: The async nature of this class should make it
+// non-movable
+//
 class StockAnimation : public IAnimation
 {
 public:
 	StockAnimation(std::string Ticker);
 
 	void Draw(ILedMatrixView& View) override;
+	StockUpdateStatus DoStockUpdateAsync();
+	std::string GetTicker();
 
 private:
 	std::string m_Ticker;
@@ -43,6 +55,7 @@ private:
 	std::unique_ptr<IStock> m_Stock;
 
 	std::string GetStockPriceString();
+	std::future<void> m_UpdateStockTask;
 };
 
 // session manager picks session and runs it, then picks another.

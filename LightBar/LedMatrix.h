@@ -22,6 +22,7 @@ public:
 	void SetPixal(unsigned int x, unsigned int y, RGB color) override;
 	void Shift(int Up, int Right) override;
 	Area GetAbsoluteArea() override;
+	void SetAbsoluteArea(Area area) override;
 
 	unsigned int GetHeight() override;
 	unsigned int GetWidth() override;
@@ -31,6 +32,14 @@ public:
 
 private:
 
+	struct CustomPixel
+	{
+		unsigned int x;
+		unsigned int y;
+		RGB color;
+	};
+
+	std::vector<CustomPixel> m_CustomPixels;
 
 	std::shared_ptr<rgb_matrix::RGBMatrix> m_Canvas;
   	rgb_matrix::FrameCanvas **m_Offscreen_canvas;
@@ -60,7 +69,7 @@ private:
 	void WorkerThread();
 
 	std::shared_ptr<rgb_matrix::RGBMatrix> m_Canvas;
-	std::shared_ptr<LedMatrixView> m_View;
+	std::deque<LedMatrixView> m_View;
   	rgb_matrix::FrameCanvas *m_Offscreen_canvas;
 	std::mutex m_RedrawMutex;
 	bool m_Rundown = false;

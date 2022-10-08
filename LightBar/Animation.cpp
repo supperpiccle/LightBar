@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <iostream>
 
 StockAnimation::StockAnimation(std::string Ticker)
 	: m_Ticker(Ticker)
@@ -33,15 +34,18 @@ void StockAnimation::Draw(ILedMatrixView& View)
 	tickerArea.x0 = 0;
 	tickerArea.y0 = 0;
 	tickerArea.x1 = width / 2;
-	tickerArea.y1 = height / 2;
+	tickerArea.y1 = 10;
 	View.CreateSubMatrix(tickerArea).Write(m_Ticker);
 
-	Area logoArea = tickerArea;
-	logoArea.x0 = tickerArea.x1;
-	logoArea.y0 = 0;
-	logoArea.x1 = width;
-	logoArea.y1 = height / 2;
-	View.CreateSubMatrix(logoArea).Write("Picture");
+	// Logos disabled until I get a matrix that is bigger.
+	//Area logoArea = tickerArea;
+	//logoArea.x0 = tickerArea.x1;
+	//logoArea.y0 = 0;
+	//logoArea.x1 = width;
+	//logoArea.y1 = height / 2;
+	////View.CreateSubMatrix(logoArea).Write("Picture");
+	////TODO fix the logo missing issue.
+	//m_Stock->Logo().ApplyImage(View.CreateSubMatrix(logoArea));
 
 	Area bottomArea;
 	bottomArea.x0 = 0;
@@ -81,8 +85,22 @@ void StockAnimation::Draw(ILedMatrixView& View)
 		arrowPath = "/home/pi/LightBar/LightBar/build/media/sideways_arrow.png";
 	}
 	bottomSubMatrix.CreateSubMatrix(bottomArrowArea).ShowPicture(arrowPath);
-	//bottomSubMatrix.CreateSubMatrix(bottomArrowArea).Write("Arrow");
+}
 
+StockUpdateStatus StockAnimation::DoStockUpdateAsync()
+{
+	if(m_UpdateStockTask.valid())
+	{
+		return StockUpdateStatus::StillRunning;
+	}
+
+	m_UpdateStockTask = std::async(std::launch::async,
+	[this]()
+	{
+		m_Stock->Update();
+	});
+
+	return StockUpdateStatus::Success;
 }
 
 std::string StockAnimation::GetStockPriceString()
@@ -90,4 +108,9 @@ std::string StockAnimation::GetStockPriceString()
 	std::stringstream stream;
 	stream << std::fixed << std::setprecision(2) << m_Stock->Price();
 	return stream.str();
+}
+
+std::string StockAnimation::GetTicker()
+{
+	return m_Stock->Ticker();
 }

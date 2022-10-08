@@ -5,6 +5,7 @@
 #include <Magick++.h>
 #include <magick/image.h>
 #include <map>
+#include <vector>
 #include <mutex>
 
 using ImageVector = std::vector<Magick::Image>;

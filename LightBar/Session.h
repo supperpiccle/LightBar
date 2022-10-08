@@ -47,10 +47,8 @@ public:
 
 private:
 	void AnimationThread();
-	void StockUpdateThread();
 	bool m_Rundown;
 	std::thread m_Thread;
-	std::thread m_StockUpdateThread;
 
 	std::vector<IAnimation> m_Animations;
 
